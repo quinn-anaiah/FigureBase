@@ -1,0 +1,52 @@
+.dashboard-container {
+  padding: 2rem;
+  background-color: #111;
+  min-height: 100vh;
+  color: #f4f4f4;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.dashboard-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+.card-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  justify-content: flex-start;
+}
+
+.funko-card {
+  background-color: #1e1e1e;
+  border: 2px solid #333;
+  border-radius: 12px;
+  width: 220px;
+  padding: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.funko-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.2);
+}
+
+.funko-card img {
+  width: 100%;
+  border-radius: 10px;
+  margin-bottom: 0.75rem;
+}
+
+.funko-card h3 {
+  font-size: 1.2rem;
+  margin: 0.5rem 0;
+  color: #ffcc00;
+}
+
+.funko-card p {
+  font-size: 0.9rem;
+  margin: 0.25rem 0;
+  color: #ccc;
+}
