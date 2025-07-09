@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, setDoc, addDoc, Timestamp} from "firebase/firestore";
 import { db } from '../firebase'; // ✅ fix this path
 import CreatableSelect from 'react-select/creatable';
 
 
 export default function NewFigForm() {
 
-    const [formData, setFormData] = useState({
+    const initialFormData = {
         name: '',
         modelNumber: '',
         category: '',
@@ -17,13 +17,14 @@ export default function NewFigForm() {
         convention: '',
         owned: false,
         estimatedPriceAtPurchase: null,
-        dateAquired: '',
+        dateAcquired: '',
         bobbleHead: false,
         count: null,
         imageUrl: '',
         vaulted: false,
+    };
 
-    });
+    const [formData, setFormData] = useState(initialFormData);
 
     const [categories, setCategories] = useState([]);
     const [editions, setEditions] = useState([]);
@@ -40,6 +41,7 @@ export default function NewFigForm() {
                     label: doc.data().name
                 }));
                 setter(items);
+                console.log(`Fetched ${collectionName}`, items)
             } catch (error) {
                 console.error(`Error fetching ${collectionName}:`, error);
             }
@@ -57,38 +59,7 @@ export default function NewFigForm() {
     
     if retail exclusive, new attribute named convention Name, and also store name*/
 
-    // const editions = [
-    //     "Common",
-    //     "Chase",
-    //     "Limited Edition",
-    //     "Convention Exlusive",
-    //     "Retail Exclusive",
-    //     "Other",
-    // ];
 
-    // const materials = [
-    //     "Vinyl",
-    //     "Glow-in-the-Dark",
-    //     "Flocked",
-    //     "Metallic",
-    //     "Diamond",
-    //     "Blacklight",
-    //     "Chrome",
-    //     "Translucent",
-    //     "Other",
-    // ];
-
-    // const categories = [
-    //     "Pop Heroes",
-    //     "Pop Marvel",
-    //     "Pop Animation",
-    //     "Pop",
-    //     "Other",
-    // ];
-
-    // const seriesList = [
-    //     "DC", "Batman", "My Hero Academia", "Other",
-    // ]
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -97,39 +68,53 @@ export default function NewFigForm() {
             ...prev,
             [name]: type === 'checkbox' ? checked : value,
         }));
-        console.log("FormData: ", formData);
+        
     };
 
 
-    const handleSubmit = (event) => {
-        console.log("FormData: ", formData);
-        //if successfule, route to the page of whatever list the new fig was added to. If added to wishlist, go to /wishlist
+    const addFig = async () => {
+        const listType = formData.owned ? "collection" : "wishlist";
+        //adding new doc in figuers collection
+        const docRef = await addDoc(collection(db, "figures"), {
+            name: formData.name,
+            modelNumber: Number(formData.modelNumber),
+            category: formData.category,
+            edition: formData.edition,
+            materials: formData.material,
+            series: formData.series,
+            bobbleHead: formData.bobbleHead,
+            vaulted: formData.vaulted,
+            imageUrl: formData.imageUrl,
+            owned: formData.owned,
+            estimatedPriceAtPurchase: formData.estimatedPriceAtPurchase || null,
+            dateAcquired: Timestamp.fromDate(new Date(formData.dateAcquired))|| null,
+            count: Number(formData.count) || null,
+            list: listType
+
+        });
+
+        console.log("Document written with ID: ", docRef.id);
 
     }
-    // // Build options in the format react-select expects
-    // const categoryOptions = categories.map((category) => ({
-    //     value: category,
-    //     label: category,
-    // }));
-    // const editionOptions = editions.map((edition) => ({
-    //     value: edition,
-    //     label: edition,
-    // }));
 
-    // const materialOptions = materials.map((material) => ({
-    //     value: material,
-    //     label: material,
-    // }));
+    
 
-    // const seriesOptions = seriesList.map((series) => ({
-    //     value: series,
-    //     label: series,
-    // }));
+        //if successfule, route to the page of whatever list the new fig was added to. If added to wishlist, go to /wishlist
+
+   
+    const handleSubmit = async (e) => {
+        e.preventDefault(); // ✅ stop full-page reload
+        console.log("FormData to be submmited", formData);
+        await addFig();
+        setFormData(initialFormData);
+
+    };
+
 
 
     return (
-        <><br></br><form
-            onSubmit={handleSubmit}
+        <><br></br><form onSubmit={handleSubmit}
+
             className="max-w-md mx-auto bg-white p-6 rounded-2xl shadow-md space-y-4"
         >
             <div
@@ -163,7 +148,7 @@ export default function NewFigForm() {
                     name="modelNumber"
                     value={formData.modelNumber}
                     onChange={handleChange}
-                    require
+                    require="true"
                     className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900" />
             </div>
 
@@ -171,7 +156,7 @@ export default function NewFigForm() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
                 <CreatableSelect
                     options={categories}
-                    value={categories.find(opt => opt.value === formData.category)}
+                    value={categories.find(opt => opt.value === formData.category || null)}
                     onChange={(selectedOption) =>
                         setFormData((prev) => ({
                             ...prev,
@@ -190,7 +175,7 @@ export default function NewFigForm() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Edition</label>
                 <CreatableSelect
                     options={editions}
-                    value={editions.find(opt => opt.value === formData.edition)}
+                    value={editions.find(opt => opt.value === formData.edition || null)}
                     onChange={(selectedOption) =>
                         setFormData((prev) => ({
                             ...prev,
@@ -208,7 +193,7 @@ export default function NewFigForm() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Materials</label>
                 <CreatableSelect
                     options={materials}
-                    value={materials.find(opt => opt.value === formData.material)}
+                    value={materials.find(opt => opt.value === formData.material || null)}
                     onChange={(selectedOption) =>
                         setFormData((prev) => ({
                             ...prev,
@@ -225,7 +210,7 @@ export default function NewFigForm() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">Series</label>
                 <CreatableSelect
                     options={seriesList}
-                    value={seriesList.find(opt => opt.value === formData.series)}
+                    value={seriesList.find(opt => opt.value === formData.series || null)}
                     onChange={(selectedOption) =>
                         setFormData((prev) => ({
                             ...prev,
@@ -303,7 +288,7 @@ export default function NewFigForm() {
                         <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
                         <input
                             type="number" min="0" step="0.01" placeholder="0.00"
-                            name="price"
+                            name="estimatedPriceAtPurchase"
                             value={formData.estimatedPriceAtPurchase}
                             onChange={handleChange}
                             require
@@ -315,7 +300,7 @@ export default function NewFigForm() {
                         <input
                             type="date"
                             name="dateAcquired"
-                            value={formData.dateAquired}
+                            value={formData.dateAcquired}
                             onChange={handleChange}
                             require
                             className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900" />
@@ -338,6 +323,7 @@ export default function NewFigForm() {
             <button
                 type="submit"
                 className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition duration-200"
+                
             >
                 Add Figure
             </button>
