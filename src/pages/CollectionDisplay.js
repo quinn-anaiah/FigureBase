@@ -1,6 +1,8 @@
-import React from "react";
+
 import BackButton from "../components/BackButton";
-//import './Dashboard.css';
+import React, { useEffect, useState } from "react";
+import { collection, getDocs, doc, setDoc, addDoc, Timestamp, query, where } from "firebase/firestore";
+import { db } from '../firebase'; // ✅ fix this path
 
 const sampleCollection = [
   {
@@ -26,6 +28,48 @@ const sampleCollection = [
 ];
 
 function CollectionDisplay() {
+  const [figuresList, setFiguresList] = useState([]);
+
+
+  useEffect(() => {
+    const fetchCollection = async () => {
+      try {
+        const q = query(collection(db, "figures"), where("list", "==", "collection"));
+        const querySnapshot = await getDocs(q);
+        const newFigsList = [];
+
+        for (const doc of querySnapshot.docs) {
+          const data = doc.data();
+
+          newFigsList.push({
+            id: doc.id,
+            name: data.name,
+            modelNumber: data.modelNumber,
+            category: data.category,
+            edition: data.edition,
+            materials: data.material,
+            series: data.series,
+            bobbleHead: data.bobbleHead,
+            vaulted: data.vaulted,
+            imageUrl: data.imageUrl,
+            owned: data.owned,
+            estimatedPriceAtPurchase: data.estimatedPriceAtPurchase || null,
+            dateAcquired: new Date(data.dateAcquired) || null,
+            count: data.count|| null,
+            list: data.list
+          });
+        }
+        setFiguresList(newFigsList);
+
+
+      } catch (error) {
+        console.error("Error getting collection", error);
+      }
+    }
+    fetchCollection();
+  }, []);
+
+
   return (
     <div className="bg-gradient-to-br from-zinc-900 to-black min-h-screen text-white px-6 py-10">
       <div className="max-w-7xl mx-auto">
@@ -35,14 +79,14 @@ function CollectionDisplay() {
         </h1>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
-          {sampleCollection.map((item) => (
+          {figuresList.map((item) => (
             <div
               key={item.id}
               className="bg-zinc-800 border border-zinc-700 rounded-xl overflow-hidden shadow-lg hover:shadow-yellow-400/30 hover:scale-[1.02] transition duration-300"
             >
               <div className="bg-white h-48 flex items-center justify-center">
                 <img
-                  src={item.imageUrl}
+                  src={item.imageUrl || "https://media.istockphoto.com/id/1409329028/vector/no-picture-available-placeholder-thumbnail-icon-illustration-design.jpg?s=612x612&w=0&k=20&c=_zOuJu755g2eEUioiOUdz_mHKJQJn-tDgIAhQzyeKUQ="}
                   alt={item.name}
                   className="h-full object-contain p-2"
                 />
@@ -50,24 +94,23 @@ function CollectionDisplay() {
 
               <div className="p-4 space-y-1">
                 <h2 className="text-xl font-bold text-yellow-300">
-                  {item.name} #{item.number}
+                  {item.name} #{item.modelNumber}
                 </h2>
                 <p className="text-sm text-gray-300">
                   Series: <span className="font-medium">{item.series}</span>
                 </p>
                 <p className="text-sm text-gray-300">
-                  Variant: <span className="italic">{item.variant}</span>
+                  Edition: <span className="italic">{item.edition}</span>
                 </p>
-                <p className="text-sm text-gray-400">Year: {item.releaseYear}</p>
-                <p
-                  className={`text-sm font-bold ${
-                    item.status === "Owned"
+                <p className="text-sm text-gray-400">Date: {item.dateAcquired?.toLocaleDateString() || "Unknown"}</p>
+                {/* <p
+                  className={`text-sm font-bold ${item.status === "Owned"
                       ? "text-green-400"
                       : "text-red-400"
-                  }`}
+                    }`}
                 >
                   Status: {item.status}
-                </p>
+                </p> */}
               </div>
             </div>
           ))}

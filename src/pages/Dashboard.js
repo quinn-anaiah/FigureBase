@@ -56,6 +56,7 @@ export default function Dashboard() {
                  onClick={handleAddClick}>
                     New +
                 </button>
+                <button className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-3 px-2 rounded-xl shadow-md text-center transition"> Export</button>
 
               
             </div>
