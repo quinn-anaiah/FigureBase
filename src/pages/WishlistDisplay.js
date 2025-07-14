@@ -5,30 +5,9 @@ import { collection, getDocs, doc, setDoc, addDoc, Timestamp, query, where } fro
 import { db } from '../firebase'; // ✅ fix this path
 import EditFigForm from "../components/EditFigForm";
 
-const sampleCollection = [
-  {
-    id: 1,
-    name: "Batman",
-    number: "01",
-    series: "DC Comics",
-    variant: "Glow-in-the-Dark",
-    releaseYear: 2019,
-    status: "Owned",
-    imageUrl: "https://m.media-amazon.com/images/I/91QNOn1uO0L.jpg",
-  },
-  {
-    id: 2,
-    name: "Iron Man",
-    number: "23",
-    series: "Marvel",
-    variant: "Classic",
-    releaseYear: 2018,
-    status: "Wishlist",
-    imageUrl: "https://funko.com/dw/image/v2/BGTS_PRD/on/demandware.static/-/Sites-funko-master-catalog/default/dwd7f497c9/images/funko/upload/82499_Marvel_NC_IronMan_POP_GLAM-WEB.png?sw=800&sh=800",
-  },
-];
 
-function CollectionDisplay() {
+
+function WishlistDisplay() {
   const [figuresList, setFiguresList] = useState([]);
   const [selectedFigure, setSelectedFigure] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -36,9 +15,9 @@ function CollectionDisplay() {
 
 
   useEffect(() => {
-    const fetchCollection = async () => {
+    const fetchWishlist = async () => {
       try {
-        const q = query(collection(db, "figures"), where("list", "==", "collection"));
+        const q = query(collection(db, "figures"), where("list", "==", "wishlist"));
         const querySnapshot = await getDocs(q);
         const newFigsList = [];
 
@@ -53,9 +32,9 @@ function CollectionDisplay() {
             edition: data.edition,
             material: data.material || "",
             series: data.series,
+            bobbleHead: data.bobbleHead,
             convention: data.convention || "",
             exclusiveStore: data.exclusiveStore || "",
-            bobbleHead: data.bobbleHead,
             vaulted: data.vaulted,
             imageUrl: data.imageUrl,
             owned: data.owned,
@@ -72,40 +51,40 @@ function CollectionDisplay() {
 
 
       } catch (error) {
-        console.error("Error getting collection", error);
+        console.error("Error getting wishlist", error);
       }
     }
-    fetchCollection();
+    fetchWishlist();
   }, []);
 
   const handleFigUpdate = async (updatedFigure) => {
-    const newListType = updatedFigure.owned ? "collection" : "wishlist";
-    const updatedFigureWithList = { ...updatedFigure, list: newListType };
+  const newListType = updatedFigure.owned ? "collection" : "wishlist";
+  const updatedFigureWithList = { ...updatedFigure, list: newListType };
 
-    try {
-      const docRef = doc(db, "figures", updatedFigure.id);
-      await setDoc(docRef, updatedFigureWithList);
+  try {
+    const docRef = doc(db, "figures", updatedFigure.id);
+    await setDoc(docRef, updatedFigureWithList);
 
-      if (selectedFigure.list !== newListType) {
-        // 🗑️ Remove from current list view
-        setFiguresList((prevList) =>
-          prevList.filter((fig) => fig.id !== updatedFigure.id)
-        );
-      } else {
-        // 🔁 Update in place
-        setFiguresList((prevList) =>
-          prevList.map((fig) =>
-            fig.id === updatedFigure.id ? updatedFigureWithList : fig
-          )
-        );
-      }
-
-      setShowEditModal(false);
-      setShowDetailsModal(false);
-    } catch (error) {
-      console.error("Error updating figure:", error);
+    if (selectedFigure.list !== newListType) {
+      // 🗑️ Remove from current list view
+      setFiguresList((prevList) =>
+        prevList.filter((fig) => fig.id !== updatedFigure.id)
+      );
+    } else {
+      // 🔁 Update in place
+      setFiguresList((prevList) =>
+        prevList.map((fig) =>
+          fig.id === updatedFigure.id ? updatedFigureWithList : fig
+        )
+      );
     }
-  };
+
+    setShowEditModal(false);
+    setShowDetailsModal(false);
+  } catch (error) {
+    console.error("Error updating figure:", error);
+  }
+};
 
 
 
@@ -114,8 +93,8 @@ function CollectionDisplay() {
     <div className="bg-gradient-to-br from-zinc-900 to-black min-h-screen text-white px-6 py-10">
       <div className="max-w-7xl mx-auto">
         <BackButton />
-        <h1 className="text-5xl font-extrabold text-titlePurple mb-12 font-sans tracking-tight">
-          💜 My Funko Collection
+        <h1 className="text-5xl font-extrabold text-titleGreen mb-12 font-sans tracking-tight">
+          💚 My Funko Wishlist
         </h1>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-10">
@@ -126,7 +105,7 @@ function CollectionDisplay() {
                 setShowDetailsModal(true);
               }}
               role="button"
-              className="bg-zinc-800 border border-zinc-700 rounded-xl overflow-hidden shadow-lg hover:shadow-lightPurple hover:scale-[1.02] transition duration-300"
+              className="bg-zinc-800 border border-zinc-700 rounded-xl overflow-hidden shadow-lg hover:shadow-lightGreen hover:scale-[1.02] transition duration-300"
             >
               <div className="bg-white h-48 flex items-center justify-center">
                 <img
@@ -137,7 +116,7 @@ function CollectionDisplay() {
               </div>
 
               <div className="p-4 space-y-1">
-                <h2 className="text-xl font-bold text-lightPurple">
+                <h2 className="text-xl font-bold text-lightGreen">
                   {item.name} #{item.modelNumber}
                 </h2>
                 {/* {selectedRoom.roomType.replace(/\b\w/g, char => char.toUpperCase())} */}
@@ -153,11 +132,7 @@ function CollectionDisplay() {
                 <p className="text-sm text-gray-300">
                   Material: <span className="italic">{item.material.replace(/\b\w/g, char => char.toUpperCase())}</span>
                 </p>
-                <p className="text-sm text-gray-300">
-                  Date: <span className="font-medium"> {item.dateAcquired
-                    ? new Date(item.dateAcquired).toLocaleDateString()
-                    : "Unknown"} </span>
-                </p>
+                
                 {/* <p
                   className={`text-sm font-bold ${item.status === "Owned"
                       ? "text-green-400"
@@ -176,7 +151,7 @@ function CollectionDisplay() {
 
               {/* Close Button */}
               <button
-                className="absolute top-2 right-3 text-xl text-white hover:text-titlePurple"
+                className="absolute top-2 right-3 text-xl text-white hover:text-titleGreen"
                 onClick={() => setShowDetailsModal(false)}
               >
                 ✖
@@ -193,7 +168,7 @@ function CollectionDisplay() {
 
               {/* Text on Right */}
               <div className="w-2/3 flex flex-col justify-start space-y-2 overflow-y-auto max-h-[500px] pr-2">
-                <h2 className="text-3xl text-lightPurple font-bold mb-2">{selectedFigure.name.replace(/\b\w/g, char => char.toUpperCase())} #{selectedFigure.modelNumber}</h2>
+                <h2 className="text-3xl text-lightGreen font-bold mb-2">{selectedFigure.name.replace(/\b\w/g, char => char.toUpperCase())} #{selectedFigure.modelNumber}</h2>
 
                 <p><strong>Category:</strong> {selectedFigure.category.replace(/\b\w/g, char => char.toUpperCase())}</p>
                 <p><strong>Series:</strong> {selectedFigure.series.replace(/\b\w/g, char => char.toUpperCase())}</p>
@@ -201,18 +176,11 @@ function CollectionDisplay() {
                 <p><strong>Material:</strong> {selectedFigure.material.replace(/\b\w/g, char => char.toUpperCase())}</p>
                 <p><strong>Bobble Head:</strong> {selectedFigure.bobbleHead ? "Yes" : "No"}</p>
                 <p><strong>Vaulted:</strong> {selectedFigure.vaulted ? "Yes" : "No"}</p>
-                <p><strong>Count Owned:</strong> {selectedFigure.count || 1}</p>
-                <p><strong>
-                  Date:  </strong>{selectedFigure.dateAcquired
-                    ? new Date(selectedFigure.dateAcquired).toLocaleDateString()
-                    : "Unknown"}
-                </p>
-                <p><strong>Estimated Price:</strong> ${selectedFigure.estimatedPriceAtPurchase || "?"}</p>
-              </div>
+               </div>
 
               {/* Edit Button */}
 
-              <button type="button" class=" absolute bottom-2 right-3 text-white bg-gradient-to-r from-purple-500 via-purple-600 to-purple-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-purple-300 dark:focus:ring-purple-800 shadow-lg shadow-purple-500/50 dark:shadow-lg dark:shadow-purple-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
+              <button type="button" class=" absolute bottom-2 right-3 text-white bg-gradient-to-r from-green-500 via-green-600 to-green-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 shadow-lg shadow-green-500/50 dark:shadow-lg dark:shadow-green-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2"
                 onClick={() => { setShowDetailsModal(false); setShowEditModal(true); }}
               >
                 Edit
@@ -242,4 +210,4 @@ function CollectionDisplay() {
   );
 }
 
-export default CollectionDisplay;
+export default WishlistDisplay;

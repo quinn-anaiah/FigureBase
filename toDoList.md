@@ -3,14 +3,14 @@
 
 
 preview `Ctrl+Shift+V` 
-- In new Fig Form:
+-  [x] In new Fig Form:
     - [x]  if new category, add to category collection.(add pop infront of it before submitting). Same with materials,editions, and series
     -  [x] Make certain Fields Required
     - if retail exclusive, new attribute named store name and same for convention exclusive
 
-- Okay so now I need to update the display fields on the collection display
-    - decide on fig css and wich fields to diplay
-- New Page : Wishlist display 
+-  [x] Okay so now I need to update the display fields on the collection display
+    - [x] decide on fig css and wich fields to diplay
+- [x] New Page : Wishlist display 
 - [x]  Edit Fig Form: Update Doc to firestore
     -  [x] place holder/autofil current values
     -  [x] Can switch list by toggling owned

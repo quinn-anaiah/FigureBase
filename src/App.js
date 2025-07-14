@@ -3,6 +3,7 @@ import techlogo from './technologist-dark-skin-tone.svg';
 import Dashboard from './pages/Dashboard';
 import CollectionDisplay from './pages/CollectionDisplay';
 import Admin from './pages/Admin';
+import WishlistDisplay from './pages/WishlistDisplay';
 import './App.css';
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/collection-display" element={<CollectionDisplay/>}/>
         <Route path="/admin" element={<Admin/>}/>
+        <Route path="/wishlist-display" element={<WishlistDisplay/>}/>
 
         {/* Default ("/") route */}
         <Route
