@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { collection, getDocs, doc, setDoc, addDoc, Timestamp} from "firebase/firestore";
+import { collection, getDocs, doc, setDoc, addDoc, Timestamp } from "firebase/firestore";
 import { db } from '../firebase'; // ✅ fix this path
 import CreatableSelect from 'react-select/creatable';
+import { ensureValueInCollection } from "../utils/firestoreHelpers";
 
 
 export default function NewFigForm() {
@@ -68,12 +69,27 @@ export default function NewFigForm() {
             ...prev,
             [name]: type === 'checkbox' ? checked : value,
         }));
-        
+
     };
+    function formatDateForInput(date) {
+        if (!date) return "";
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-indexed
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
 
 
     const addFig = async () => {
         const listType = formData.owned ? "collection" : "wishlist";
+
+        // Ensure new values exist in their Firestore collections
+        await Promise.all([
+            ensureValueInCollection("categories", formData.category),
+            ensureValueInCollection("editions", formData.edition),
+            ensureValueInCollection("materials", formData.material),
+            ensureValueInCollection("series", formData.series),
+        ]);
         //adding new doc in figuers collection
         const docRef = await addDoc(collection(db, "figures"), {
             name: formData.name,
@@ -87,7 +103,7 @@ export default function NewFigForm() {
             imageUrl: formData.imageUrl,
             owned: formData.owned,
             estimatedPriceAtPurchase: formData.estimatedPriceAtPurchase || null,
-            dateAcquired: Timestamp.fromDate(new Date(formData.dateAcquired))|| null,
+            dateAcquired: String(formData.dateAcquired) || null,
             count: Number(formData.count) || null,
             list: listType
 
@@ -97,11 +113,11 @@ export default function NewFigForm() {
 
     }
 
-    
 
-        //if successfule, route to the page of whatever list the new fig was added to. If added to wishlist, go to /wishlist
 
-   
+    //if successfule, route to the page of whatever list the new fig was added to. If added to wishlist, go to /wishlist
+
+
     const handleSubmit = async (e) => {
         e.preventDefault(); // ✅ stop full-page reload
         console.log("FormData to be submmited", formData);
@@ -152,75 +168,130 @@ export default function NewFigForm() {
                     className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900" />
             </div>
 
+            {/* Category */}
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Category <span className="text-red-600">*</span>
+                </label>
                 <CreatableSelect
-                    options={categories}
-                    value={categories.find(opt => opt.value === formData.category || null)}
+                    options={categories.map(opt => ({
+                        value: opt.value,
+                        label: (opt.label || opt.value).replace(/\b\w/g, c => c.toUpperCase()),
+                    }))}
+                    value={
+                        formData.category
+                            ? {
+                                value: formData.category,
+                                label: formData.category.replace(/\b\w/g, c => c.toUpperCase()),
+                            }
+                            : null
+                    }
                     onChange={(selectedOption) =>
-                        setFormData((prev) => ({
+                        setFormData(prev => ({
                             ...prev,
                             category: selectedOption?.value || '',
                         }))
                     }
-                    className="w-full rounded-lg  py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    className="w-full rounded-lg py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
                     classNamePrefix="react-select"
                     isClearable
                     placeholder="Select or type a category..."
+                    required
                 />
             </div>
 
-
+            {/* Edition */}
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Edition</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Edition <span className="text-red-600">*</span>
+                </label>
                 <CreatableSelect
-                    options={editions}
-                    value={editions.find(opt => opt.value === formData.edition || null)}
+                    options={editions.map(opt => ({
+                        value: opt.value,
+                        label: (opt.label || opt.value).replace(/\b\w/g, c => c.toUpperCase()),
+                    }))}
+                    value={
+                        formData.edition
+                            ? {
+                                value: formData.edition,
+                                label: formData.edition.replace(/\b\w/g, c => c.toUpperCase()),
+                            }
+                            : null
+                    }
                     onChange={(selectedOption) =>
-                        setFormData((prev) => ({
+                        setFormData(prev => ({
                             ...prev,
                             edition: selectedOption?.value || '',
                         }))
                     }
-                    className="w-full rounded-lg  py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    className="w-full rounded-lg py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
                     classNamePrefix="react-select"
                     isClearable
-                    placeholder="Select or type a edition..."
+                    placeholder="Select or type an edition..."
+                    required
                 />
             </div>
 
+            {/* Material */}
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Materials</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Material <span className="text-red-600">*</span>
+                </label>
                 <CreatableSelect
-                    options={materials}
-                    value={materials.find(opt => opt.value === formData.material || null)}
+                    options={materials.map(opt => ({
+                        value: opt.value,
+                        label: (opt.label || opt.value).replace(/\b\w/g, c => c.toUpperCase()),
+                    }))}
+                    value={
+                        formData.material ? {
+                            value: formData.material,
+                            label: formData.material.replace(/\b\w/g, c => c.toUpperCase()),
+                        }
+                            : null
+                    }
                     onChange={(selectedOption) =>
-                        setFormData((prev) => ({
+                        setFormData(prev => ({
                             ...prev,
                             material: selectedOption?.value || '',
                         }))
                     }
-                    className="w-full rounded-lg  py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    className="w-full rounded-lg py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
                     classNamePrefix="react-select"
                     isClearable
                     placeholder="Select or type a material..."
+                    required
                 />
             </div>
+
+            {/* Series */}
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Series</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Series <span className="text-red-600">*</span>
+                </label>
                 <CreatableSelect
-                    options={seriesList}
-                    value={seriesList.find(opt => opt.value === formData.series || null)}
+                    options={seriesList.map(opt => ({
+                        value: opt.value,
+                        label: (opt.label || opt.value).replace(/\b\w/g, c => c.toUpperCase()),
+                    }))}
+                    value={
+                        formData.series
+                            ? {
+                                value: formData.series,
+                                label: formData.series.replace(/\b\w/g, c => c.toUpperCase()),
+                            }
+                            : null
+                    }
                     onChange={(selectedOption) =>
-                        setFormData((prev) => ({
+                        setFormData(prev => ({
                             ...prev,
                             series: selectedOption?.value || '',
                         }))
                     }
-                    className="w-full rounded-lg  py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                    className="w-full rounded-lg py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
                     classNamePrefix="react-select"
                     isClearable
                     placeholder="Select or type a series..."
+                    required
                 />
             </div>
 
@@ -300,7 +371,7 @@ export default function NewFigForm() {
                         <input
                             type="date"
                             name="dateAcquired"
-                            value={formData.dateAcquired}
+                            value={formData.dateAcquired || ""}
                             onChange={handleChange}
                             require
                             className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900" />
@@ -323,7 +394,7 @@ export default function NewFigForm() {
             <button
                 type="submit"
                 className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition duration-200"
-                
+
             >
                 Add Figure
             </button>

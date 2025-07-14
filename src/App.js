@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import techlogo from './technologist-dark-skin-tone.svg';
 import Dashboard from './pages/Dashboard';
 import CollectionDisplay from './pages/CollectionDisplay';
+import Admin from './pages/Admin';
 import './App.css';
 
 function App() {
@@ -11,6 +12,7 @@ function App() {
         {/* Route for the dashboard page */}
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/collection-display" element={<CollectionDisplay/>}/>
+        <Route path="/admin" element={<Admin/>}/>
 
         {/* Default ("/") route */}
         <Route
