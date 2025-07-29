@@ -28,3 +28,9 @@ In the future i would like to expand the site to be my person one, or at least t
 
 Being able to upload a picture via camera, or file would be great and make the whole thing more practical 
 
+## I need to prevent adding dublicates, if already on wishlist, say we found figure that matches and its already in wishlist. If already in collection, pull it up and offer the options to increase count
+
+## Also need to account for mulitpacks, So multipack as boolean if yes, how many figs in pack _ inpu
+
+# MUST FIND BEST WAY TO UPLOAD AND STORE IMAGES
+

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { collection, getDocs, doc, setDoc, addDoc, Timestamp, deleteDoc } from "firebase/firestore";
-import { db } from '../firebase'; // ✅ fix this path
+import { db, storage } from '../firebase'; // ✅ fix this path
+import { ref, getDownloadURL, uploadBytes } from "firebase/storage";
 import CreatableSelect from 'react-select/creatable';
 import { ensureValueInCollection } from "../utils/firestoreHelpers";
 import { useNavigate } from "react-router-dom";
@@ -9,6 +10,8 @@ import { useNavigate } from "react-router-dom";
 
 export default function EditFigForm({ figure, onSave, onCancel, onDeleteSuccess }) {
     const navigate = useNavigate();
+    const [imageFile, setImageFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
 
     const initialFormData = {
         name: '',
@@ -126,6 +129,15 @@ export default function EditFigForm({ figure, onSave, onCancel, onDeleteSuccess 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        let finalImageUrl = formData.imageUrl;
+
+        if (imageFile) {
+            const storageRef = ref(storage, `figures/${Date.now()}_${imageFile.name}`);
+            await uploadBytes(storageRef, imageFile);
+            finalImageUrl = await getDownloadURL(storageRef);
+            console.log("✅ Image uploaded. URL:", finalImageUrl);
+        }
+
         // Make sure new values are added to Firestore collections
         await Promise.all([
             ensureValueInCollection("categories", formData.category),
@@ -133,7 +145,12 @@ export default function EditFigForm({ figure, onSave, onCancel, onDeleteSuccess 
             ensureValueInCollection("materials", formData.material),
             ensureValueInCollection("series", formData.series),
         ]);
-        onSave({ ...figure, ...formData });
+        await onSave({
+            ...figure,
+            ...formData,
+            imageUrl: finalImageUrl
+        });
+        setImageFile(null);
     };
 
     const handleDelete = async (e) => {
@@ -380,10 +397,10 @@ export default function EditFigForm({ figure, onSave, onCancel, onDeleteSuccess 
             <div>
                 <label className="block text-sm font-medium text-extraLightPurple mb-1">Image Url</label>
                 <input
-                    type="text"
-                    name="imageUrl"
-                    value={formData.imageUrl}
-                    onChange={handleChange}
+                   type="file"
+                    accept="image/*"
+                    name="imagl"
+                    onChange={(e) => setImageFile(e.target.files[0])}
 
                     className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900" />
             </div>

@@ -1,11 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { collection, getDocs, doc, setDoc, addDoc, Timestamp } from "firebase/firestore";
-import { db } from '../firebase'; // ✅ fix this path
+import { db, storage } from '../firebase'; // ✅ fix this path
+import { ref, getDownloadURL, uploadBytes } from "firebase/storage";
 import CreatableSelect from 'react-select/creatable';
 import { ensureValueInCollection } from "../utils/firestoreHelpers";
 
 
 export default function NewFigForm() {
+    const [imageFile, setImageFile] = useState(null);
+    const [uploading, setUploading] = useState(false);
+   
 
     const initialFormData = {
         name: '',
@@ -80,7 +84,7 @@ export default function NewFigForm() {
     }
 
 
-    const addFig = async () => {
+    const addFig = async (finalImageUrl) => {
         const listType = formData.owned ? "collection" : "wishlist";
 
         // Ensure new values exist in their Firestore collections
@@ -100,7 +104,7 @@ export default function NewFigForm() {
             series: formData.series,
             bobbleHead: formData.bobbleHead,
             vaulted: formData.vaulted,
-            imageUrl: formData.imageUrl,
+            imageUrl: finalImageUrl,
             owned: formData.owned,
             estimatedPriceAtPurchase: formData.estimatedPriceAtPurchase || null,
             dateAcquired: String(formData.dateAcquired) || null,
@@ -120,9 +124,32 @@ export default function NewFigForm() {
 
     const handleSubmit = async (e) => {
         e.preventDefault(); // ✅ stop full-page reload
-        console.log("FormData to be submmited", formData);
-        await addFig();
-        setFormData(initialFormData);
+
+        setUploading(true);
+
+        try {
+            let finalImageUrl = formData.imageUrl; // fallback to manually entered URL
+
+            if (imageFile) {
+                const storageRef = ref(storage, `figures/${Date.now()}_${imageFile.name}`);
+                await uploadBytes(storageRef, imageFile);
+                finalImageUrl = await getDownloadURL(storageRef);
+                console.log("Image uploaded. URL:", finalImageUrl);
+            }
+
+            // Use latest URL, not stale state
+            await addFig(finalImageUrl);
+
+            setFormData(initialFormData);
+            setImageFile(null);
+        } catch (error) {
+            console.error("❌ Upload or submission failed:", error);
+        }
+
+
+
+        setUploading(false);
+
 
     };
 
@@ -326,10 +353,10 @@ export default function NewFigForm() {
             <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Image Url</label>
                 <input
-                    type="text"
-                    name="imageUrl"
-                    value={formData.imageUrl}
-                    onChange={handleChange}
+                    type="file"
+                    accept="image/*"
+                    name="imagl"
+                    onChange={(e) => setImageFile(e.target.files[0])}
 
                     className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900" />
             </div>
