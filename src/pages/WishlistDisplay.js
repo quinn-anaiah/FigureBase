@@ -43,7 +43,10 @@ function WishlistDisplay() {
               ? new Date(data.dateAcquired)
               : null,
             count: data.count || null,
-            list: data.list
+            list: data.list,
+            description: data.description || null,
+            multiPack: data.multiPack,
+            numFigs: data.numFigs || 1,
           });
         }
         setFiguresList(newFigsList);
@@ -173,9 +176,19 @@ function WishlistDisplay() {
                 <p><strong>Category:</strong> {selectedFigure.category.replace(/\b\w/g, char => char.toUpperCase())}</p>
                 <p><strong>Series:</strong> {selectedFigure.series.replace(/\b\w/g, char => char.toUpperCase())}</p>
                 <p><strong>Edition:</strong> {selectedFigure.edition.replace(/\b\w/g, char => char.toUpperCase())}</p>
+                {selectedFigure.edition === "retail-exclusive" && (
+                  <p><strong>Exclusive Store:</strong> {selectedFigure.exclusiveStore.replace(/\b\w/g, char => char.toUpperCase())}</p>
+                ) }
+                {selectedFigure.edition === "convention-exclusive" && (
+                  <p><strong>Convention Store:</strong> {selectedFigure.convention.replace(/\b\w/g, char => char.toUpperCase())}</p>
+                ) }
                 <p><strong>Material:</strong> {selectedFigure.material.replace(/\b\w/g, char => char.toUpperCase())}</p>
+                {selectedFigure.multiPack && (
+                  <p><strong>Total Figures Included:</strong> {selectedFigure.numFigs || 1}</p>
+                )}
                 <p><strong>Bobble Head:</strong> {selectedFigure.bobbleHead ? "Yes" : "No"}</p>
                 <p><strong>Vaulted:</strong> {selectedFigure.vaulted ? "Yes" : "No"}</p>
+                <p><strong>Description</strong> {selectedFigure.description || 'None'}</p>
                </div>
 
               {/* Edit Button */}

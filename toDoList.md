@@ -32,5 +32,5 @@ Being able to upload a picture via camera, or file would be great and make the w
 
 ## Also need to account for mulitpacks, So multipack as boolean if yes, how many figs in pack _ inpu
 
-# MUST FIND BEST WAY TO UPLOAD AND STORE IMAGES
+# [x] MUST FIND BEST WAY TO UPLOAD AND STORE IMAGES
 

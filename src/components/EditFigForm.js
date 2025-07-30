@@ -29,6 +29,9 @@ export default function EditFigForm({ figure, onSave, onCancel, onDeleteSuccess 
         count: null,
         imageUrl: '',
         vaulted: false,
+        description: '',
+        multiPack: false,
+        numFigs: 1
     };
 
     const [formData, setFormData] = useState({
@@ -48,13 +51,18 @@ export default function EditFigForm({ figure, onSave, onCancel, onDeleteSuccess 
         estimatedPriceAtPurchase: '',
         dateAcquired: '',
         imageUrl: '',
-        list: ''
+        list: '',
+        description: '',
+        multiPack: false,
+        numFigs: 1
     });
 
     const [categories, setCategories] = useState([]);
     const [editions, setEditions] = useState([]);
     const [materials, setMaterials] = useState([]);
     const [seriesList, setSeriesList] = useState([]);
+    const [stores, setStores] = useState([]);
+    const [conventions, setConventions] = useState([]);
 
 
     //populate form with passed figure data
@@ -78,6 +86,9 @@ export default function EditFigForm({ figure, onSave, onCancel, onDeleteSuccess 
                 list: figure.list || '',
                 convention: figure.convention || null,
                 exclusiveStore: figure.exclusiveStore || null,
+                description: figure.description || null,
+                multiPack: figure.multiPack || false,
+                numFigs:  figure.numFigs|| 1
 
             });
         }
@@ -99,6 +110,8 @@ export default function EditFigForm({ figure, onSave, onCancel, onDeleteSuccess 
         fetchList("editions", setEditions);
         fetchList("materials", setMaterials);
         fetchList("series", setSeriesList);
+        fetchList("stores", setStores);
+        fetchList("conventions", setConventions);
 
     }, [figure]);
 
@@ -144,6 +157,8 @@ export default function EditFigForm({ figure, onSave, onCancel, onDeleteSuccess 
             ensureValueInCollection("editions", formData.edition),
             ensureValueInCollection("materials", formData.material),
             ensureValueInCollection("series", formData.series),
+            ensureValueInCollection("stores", formData.store),
+            ensureValueInCollection("conventions", formData.convention),
         ]);
         await onSave({
             ...figure,
@@ -294,6 +309,72 @@ export default function EditFigForm({ figure, onSave, onCancel, onDeleteSuccess 
                     required
                 />
             </div>
+            {/* if retail exclusive */}
+            {formData.edition === "retail-exclusive" && (
+                <div>
+                    <label className="block text-sm font-medium text-extraLightPurple mb-1">
+                        Exclusive Store
+                    </label>
+                    <CreatableSelect
+                        options={stores.map(opt => ({
+                            value: opt.value,
+                            label: (opt.label || opt.value).replace(/\b\w/g, c => c.toUpperCase()),
+                        }))}
+                        value={
+                            formData.exclusiveStore
+                                ? {
+                                    value: formData.exclusiveStore,
+                                    label: formData.exclusiveStore.replace(/\b\w/g, c => c.toUpperCase()),
+                                }
+                                : null
+                        }
+                        onChange={(selectedOption) =>
+                            setFormData(prev => ({
+                                ...prev,
+                                exclusiveStore: selectedOption?.value || '',
+                            }))
+                        }
+                        className="w-full rounded-lg py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                        classNamePrefix="react-select"
+                        isClearable
+                        placeholder="Select or type an exclusive store..."
+                        required
+                    />
+                </div>
+            )}
+            {/* if convention exclusive */}
+            {formData.edition === "convention-exclusive" && (
+                <div>
+                    <label className="block text-sm font-medium text-extraLightPurple mb-1">
+                        Convention
+                    </label>
+                    <CreatableSelect
+                        options={conventions.map(opt => ({
+                            value: opt.value,
+                            label: (opt.label || opt.value).replace(/\b\w/g, c => c.toUpperCase()),
+                        }))}
+                        value={
+                            formData.convention
+                                ? {
+                                    value: formData.convention,
+                                    label: formData.convention.replace(/\b\w/g, c => c.toUpperCase()),
+                                }
+                                : null
+                        }
+                        onChange={(selectedOption) =>
+                            setFormData(prev => ({
+                                ...prev,
+                                convention: selectedOption?.value || '',
+                            }))
+                        }
+                        className="w-full rounded-lg py-2 bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900"
+                        classNamePrefix="react-select"
+                        isClearable
+                        placeholder="Select or type an exclusive store..."
+                        required
+                    />
+                </div>
+            )}
 
             {/* Material */}
             <div>
@@ -357,7 +438,34 @@ export default function EditFigForm({ figure, onSave, onCancel, onDeleteSuccess 
                     required
                 />
             </div>
-
+            <div className="flex items-center space-x-3">
+                <label htmlFor="multi" className="text-sm font-medium text-extraLightPurple select-none">Multi Pack</label>
+                <button
+                    type="button"
+                    onClick={() =>
+                        setFormData((prev) => ({ ...prev, multiPack: !prev.multiPack }))
+                    }
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 focus:outline-none ${formData.multiPack ? 'bg-purple-600' : 'bg-gray-700'
+                        }`}
+                >
+                    <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${formData.multiPack ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                    />
+                </button>
+            </div>
+            {formData.multiPack && (
+                <div>
+                    <label className="block text-sm font-medium text-extraLightPurple mb-1">Total Figures </label>
+                    <input
+                        type="number"
+                        name="numFigs"
+                        value={formData.numFigs}
+                        onChange={handleChange}
+                        require
+                        className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900" />
+                </div>
+            )}
 
             <div className="flex items-center space-x-3">
                 <label htmlFor="bobble" className="text-sm font-medium text-extraLightPurple select-none">Bobble Head</label>
@@ -397,10 +505,21 @@ export default function EditFigForm({ figure, onSave, onCancel, onDeleteSuccess 
             <div>
                 <label className="block text-sm font-medium text-extraLightPurple mb-1">Image Url</label>
                 <input
-                   type="file"
+                    type="file"
                     accept="image/*"
                     name="imagl"
                     onChange={(e) => setImageFile(e.target.files[0])}
+
+                    className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900" />
+            </div>
+
+            <div>
+                <label className="block text-sm font-medium text-extraLightPurple mb-1">Description</label>
+                <input
+                    type="text"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
 
                     className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-500 text-gray-900" />
             </div>
