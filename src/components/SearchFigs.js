@@ -6,132 +6,135 @@ import { db } from '../firebase'; // ✅ fix this path
 
 
 export default function SearchFig() {
-    const navigate = useNavigate();
-    const [figuresList, setFiguresList] = useState([]);
-    const [filteredFiguresList, setFilteredFiguresList] = useState([]);
-    const [selectedFigure, setSelectedFigure] = useState(null);
-    const [searchInput, setSearchInput] = useState("");
-    const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
-    const [showDetailsModal, setShowDetailsModal] = useState(false);
-    const [searchPressed, setSearchPressed] = useState(false);
-    /* Okay were going to filter the figs list, by name 
-    
-    * 
-    
-    */
-    useEffect(() => {
-        const fetchFigures = async () => {
-            try {
-                const querySnapshot = await getDocs(collection(db, "figures"));
-                const newFigsList = [];
+  const navigate = useNavigate();
+  const [figuresList, setFiguresList] = useState([]);
+  const [filteredFiguresList, setFilteredFiguresList] = useState([]);
+  const [selectedFigure, setSelectedFigure] = useState(null);
+  const [searchInput, setSearchInput] = useState("");
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [searchPressed, setSearchPressed] = useState(false);
+  /* Okay were going to filter the figs list, by name 
+  
+  * 
+  
+  */
+  useEffect(() => {
+    const fetchFigures = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "figures"));
+        const newFigsList = [];
 
-                for (const doc of querySnapshot.docs) {
-                    const data = doc.data();
+        for (const doc of querySnapshot.docs) {
+          const data = doc.data();
 
-                    newFigsList.push({
-                        id: doc.id,
-                        name: data.name,
-                        modelNumber: data.modelNumber,
-                        category: data.category,
-                        edition: data.edition,
-                        material: data.material || "",
-                        series: data.series,
-                        bobbleHead: data.bobbleHead,
-                        convention: data.convention || "",
-                        exclusiveStore: data.exclusiveStore || "",
-                        vaulted: data.vaulted,
-                        imageUrl: data.imageUrl,
-                        owned: data.owned,
-                        estimatedPriceAtPurchase: data.estimatedPriceAtPurchase || null,
-                        dateAcquired: data.dateAcquired && !isNaN(new Date(data.dateAcquired))
-                            ? new Date(data.dateAcquired)
-                            : null,
-                        count: data.count || null,
-                        list: data.list
-                    });
-                }
-                setFiguresList(newFigsList);
-                console.log("Figs List, ", newFigsList);
-
-
-            } catch (error) {
-                console.error("Error getting collection", error);
-            }
+          newFigsList.push({
+            id: doc.id,
+            name: data.name,
+            modelNumber: data.modelNumber,
+            category: data.category,
+            edition: data.edition,
+            material: data.material || "",
+            series: data.series,
+            bobbleHead: data.bobbleHead,
+            convention: data.convention || "",
+            exclusiveStore: data.exclusiveStore || "",
+            vaulted: data.vaulted,
+            imageUrl: data.imageUrl,
+            owned: data.owned,
+            estimatedPriceAtPurchase: data.estimatedPriceAtPurchase || null,
+            dateAcquired: data.dateAcquired && !isNaN(new Date(data.dateAcquired))
+              ? new Date(data.dateAcquired)
+              : null,
+            count: data.count || null,
+            list: data.list,
+            description: data.description || null,
+            multiPack: data.multiPack,
+            numFigs: data.numFigs || 1,
+          });
         }
-        fetchFigures();
-    }, []);
+        setFiguresList(newFigsList);
+        console.log("Figs List, ", newFigsList);
 
 
-
-    const handleSearch = (e) => {
-        /* basic search that filters by name */
-        console.log("Search Button Pressed")
-        setSearchPressed(true)
-        console.log("You searched: ", searchInput)
-        if (searchInput == "") {
-            setFilteredFiguresList([])
-        }
-        const filtered = figuresList.filter(figure =>
-            figure.name.toLowerCase().includes(searchInput.toLowerCase())
-        );
-        setFilteredFiguresList(filtered)
-
+      } catch (error) {
+        console.error("Error getting collection", error);
+      }
     }
-    const handleAdvancedClick = (e) => {
-        console.log("Advance Search Button Pressed")
-        setShowAdvancedSearch(true)
-        setSearchPressed(true)
+    fetchFigures();
+  }, []);
+
+
+
+  const handleSearch = (e) => {
+    /* basic search that filters by name */
+    console.log("Search Button Pressed")
+    setSearchPressed(true)
+    console.log("You searched: ", searchInput)
+    if (searchInput == "") {
+      setFilteredFiguresList([])
     }
+    const filtered = figuresList.filter(figure =>
+      figure.name.toLowerCase().includes(searchInput.toLowerCase())
+    );
+    setFilteredFiguresList(filtered)
 
-    return (
-        <div>
-            <div className="w-full max-w-md min-w-[500px]">
+  }
+  const handleAdvancedClick = (e) => {
+    console.log("Advance Search Button Pressed")
+    setShowAdvancedSearch(true)
+    setSearchPressed(true)
+  }
 
-                <div class="relative mt-2">
-                    <input type="text" name="search" onChange={(e) => setSearchInput(e.target.value)} placeholder="Search Something..." value={searchInput}
-                        onKeyDown={(e) => e.key === "Enter" && handleSearch()} className="w-full border-2 border-mainPurple rounded-md pl-4 pr-20 py-2 text-sm text-gray-700 outline-none" />
+  return (
+    <div>
+      <div className="w-full max-w-md min-w-[500px]">
 
-                    {/* Clear (X) Button - appears only when there's input */}
-                    {searchInput && (
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setSearchInput("");
-                                setFilteredFiguresList([]);
-                                setSearchPressed(false);
-                            }}
-                            className="absolute text-slate-800 right-7 top-1 rounded p-1.5 border border-transparent text-center text-sm text-white transition-all shadow-sm hover:shadow focus:bg-purple-900 focus:shadow-none active:bg-purple-900 hover:text-white hover:bg-purple-900 hover:opacity-50 active:shadow-none disabled:pointer-events-none disabled:opacity-20 disabled:shadow-none"
-                        >
-                            ⨉
-                        </button>
-                    )}
-                    <button type='button' onClick={handleSearch} className="absolute right-0.5 top-1 rounded bg-purple-800 p-1.5 border border-transparent text-center text-sm text-white transition-all shadow-sm hover:shadow focus:bg-purple-700 focus:shadow-none active:bg-purple-700 hover:bg-purple-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192.904 192.904" width="16px" class="fill-white">
-                            <path
-                                d="m190.707 180.101-47.078-47.077c11.702-14.072 18.752-32.142 18.752-51.831C162.381 36.423 125.959 0 81.191 0 36.422 0 0 36.423 0 81.193c0 44.767 36.422 81.187 81.191 81.187 19.688 0 37.759-7.049 51.831-18.751l47.079 47.078a7.474 7.474 0 0 0 5.303 2.197 7.498 7.498 0 0 0 5.303-12.803zM15 81.193C15 44.694 44.693 15 81.191 15c36.497 0 66.189 29.694 66.189 66.193 0 36.496-29.692 66.187-66.189 66.187C44.693 147.38 15 117.689 15 81.193z">
-                            </path>
-                        </svg>
-                    </button>
+        <div class="relative mt-2">
+          <input type="text" name="search" onChange={(e) => setSearchInput(e.target.value)} placeholder="Search Something..." value={searchInput}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()} className="w-full border-2 border-mainPurple rounded-md pl-4 pr-20 py-2 text-sm text-gray-700 outline-none" />
 
-                    <button type="button" onClick={handleAdvancedClick} className="absolute h-10 right-50 top-1.2 rounded bg-purple-800 p-1.5 border border-mainPurple text-center text-sm text-white transition-all shadow-sm hover:shadow focus:bg-purple-700 focus:shadow-none active:bg-purple-700 hover:bg-purple-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">Advanced</button>
+          {/* Clear (X) Button - appears only when there's input */}
+          {searchInput && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchInput("");
+                setFilteredFiguresList([]);
+                setSearchPressed(false);
+              }}
+              className="absolute text-slate-800 right-7 top-1 rounded p-1.5 border border-transparent text-center text-sm text-white transition-all shadow-sm hover:shadow focus:bg-purple-900 focus:shadow-none active:bg-purple-900 hover:text-white hover:bg-purple-900 hover:opacity-50 active:shadow-none disabled:pointer-events-none disabled:opacity-20 disabled:shadow-none"
+            >
+              ⨉
+            </button>
+          )}
+          <button type='button' onClick={handleSearch} className="absolute right-0.5 top-1 rounded bg-purple-800 p-1.5 border border-transparent text-center text-sm text-white transition-all shadow-sm hover:shadow focus:bg-purple-700 focus:shadow-none active:bg-purple-700 hover:bg-purple-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192.904 192.904" width="16px" class="fill-white">
+              <path
+                d="m190.707 180.101-47.078-47.077c11.702-14.072 18.752-32.142 18.752-51.831C162.381 36.423 125.959 0 81.191 0 36.422 0 0 36.423 0 81.193c0 44.767 36.422 81.187 81.191 81.187 19.688 0 37.759-7.049 51.831-18.751l47.079 47.078a7.474 7.474 0 0 0 5.303 2.197 7.498 7.498 0 0 0 5.303-12.803zM15 81.193C15 44.694 44.693 15 81.191 15c36.497 0 66.189 29.694 66.189 66.193 0 36.496-29.692 66.187-66.189 66.187C44.693 147.38 15 117.689 15 81.193z">
+              </path>
+            </svg>
+          </button>
 
-                </div>
+          <button type="button" onClick={handleAdvancedClick} className="absolute h-10 right-50 top-1.2 rounded bg-purple-800 p-1.5 border border-mainPurple text-center text-sm text-white transition-all shadow-sm hover:shadow focus:bg-purple-700 focus:shadow-none active:bg-purple-700 hover:bg-purple-700 active:shadow-none disabled:pointer-events-none disabled:opacity-50 disabled:shadow-none">Advanced</button>
+
+        </div>
 
 
-            </div>
-            {showAdvancedSearch && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                    <div className="bg-zinc-900 text-white rounded-xl p-6 w-[90%] max-w-4xl relative flex gap-6">
+      </div>
+      {showAdvancedSearch && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-zinc-900 text-white rounded-xl p-6 w-[90%] max-w-4xl relative flex gap-6">
 
-                        {/* Close Button */}
-                        <button
-                            className="absolute top-2 right-3 text-xl text-white hover:text-titlePurple"
-                            onClick={() => setShowAdvancedSearch(false)}
-                        >
-                            ✖
-                        </button>
-                        <h2> Search</h2>
-                        {/*import Select from 'react-select';
+            {/* Close Button */}
+            <button
+              className="absolute top-2 right-3 text-xl text-white hover:text-titlePurple"
+              onClick={() => setShowAdvancedSearch(false)}
+            >
+              ✖
+            </button>
+            <h2> Search</h2>
+            {/*import Select from 'react-select';
 
 // Build options in the format react-select expects
 const categoryOptions = categories.map((category) => ({
@@ -158,65 +161,141 @@ const categoryOptions = categories.map((category) => ({
   />
 </div> */}
 
-                    </div> </div>
-            )}
+          </div> </div>
+      )}
 
-            {searchInput && searchPressed && filteredFiguresList.length < 1 && (
-                <h2>No Results</h2>
-            )}
+      {searchInput && searchPressed && filteredFiguresList.length < 1 && (
+        <h2>No Results</h2>
+      )}
 
-            {filteredFiguresList.length > 0 && (
-                <div className="mt-6 max-w-4xl mx-auto space-y-4">
-                    {filteredFiguresList.map((item) => (
-                        <div key={item.id}
-                            onClick={() => {
-                                setSelectedFigure(item);
-                                setShowDetailsModal(true);
-                            }}
-                            role="button"
-                            className="bg-zinc-800 border border-zinc-700 rounded-xl overflow-hidden shadow-lg hover:shadow-lightPurple hover:scale-[1.02] transition duration-300 flex"
-                        >
-                            <div className="w-1/4 p-2 flex items-center justify-center bg-zinc-900">
-                                <img
-                                    src={item.imageUrl || "https://media.istockphoto.com/id/1409329028/vector/no-picture-available-placeholder-thumbnail-icon-illustration-design.jpg?s=612x612&w=0&k=20&c=_zOuJu755g2eEUioiOUdz_mHKJQJn-tDgIAhQzyeKUQ="}
-                                    alt={item.name}
-                                    className="object-contain  max-h-[150px] w-full rounded"
-                                />
-                            </div>
+      {filteredFiguresList.length > 0 && (
+        <div className="mt-6 max-w-4xl mx-auto space-y-4">
+          {filteredFiguresList.map((item) => (
+            <div key={item.id}
+              onClick={() => {
+                setSelectedFigure(item);
+                setShowDetailsModal(true);
+                console.log("Selected Fig", item);
+              }}
+              role="button"
+              className="bg-zinc-800 border border-zinc-700 rounded-xl overflow-hidden shadow-lg hover:shadow-lightPurple hover:scale-[1.02] transition duration-300 flex"
+            >
+              
+              <div className="w-1/4 p-2 flex flex-col items-center bg-zinc-900">
+              <img
+                  src={item.imageUrl || "https://media.istockphoto.com/id/1409329028/vector/no-picture-available-placeholder-thumbnail-icon-illustration-design.jpg?s=612x612&w=0&k=20&c=_zOuJu755g2eEUioiOUdz_mHKJQJn-tDgIAhQzyeKUQ="}
+                  alt={item.name}
+                  className="object-contain  max-h-[150px] w-full rounded"
+                />
+              <div
+                className={`mt-4 w-full text-center text-white text-sm font-semibold py-1 rounded ${item.list === 'wishlist' ? 'bg-green-500' : 'bg-yellow-500'
+                  }`}
+              >
+                {item.list
+                  ? item.list.charAt(0).toUpperCase() + item.list.slice(1)
+                  : 'Unknown'}
+              </div>
+            </div>
 
 
-                            <div className="w-3/4 p-4 flex flex-col justify-start space-y-1 overflow-y-auto">
-                                <h2 className="text-sm font-bold text-lightPurple">
-                                    {item.name} #{item.modelNumber}
-                                </h2>
-                                {/* {selectedRoom.roomType.replace(/\b\w/g, char => char.toUpperCase())} */}
-                                <p className="text-xs text-gray-300">
-                                    Category: <span className="font-medium">{item.category.replace(/\b\w/g, char => char.toUpperCase())}</span>
-                                </p>
-                                <p className="text-xs text-gray-300">
-                                    Series: <span className="font-medium">{item.series.replace(/\b\w/g, char => char.toUpperCase())}</span>
-                                </p>
-                                <p className="text-xs text-gray-300">
-                                    Edition: <span className="italic">{item.edition.replace(/\b\w/g, char => char.toUpperCase())}</span>
-                                </p>
-                                <p className="text-xs text-gray-300">
-                                    Material: <span className="italic">{item.material.replace(/\b\w/g, char => char.toUpperCase())}</span>
-                                </p>
-                                <p className="text-xs text-gray-300">
-                                    Date: <span className="font-medium"> {item.dateAcquired
-                                        ? new Date(item.dateAcquired).toLocaleDateString()
-                                        : "Unknown"} </span>
-                                </p>
+              <div className="w-3/4 p-4 flex flex-col justify-start space-y-1 overflow-y-auto">
+                <h2 className="text-sm font-bold text-lightPurple">
+                  {item.name} #{item.modelNumber}
+                </h2>
+                {/* {selectedRoom.roomType.replace(/\b\w/g, char => char.toUpperCase())} */}
+                <p className="text-xs text-gray-300">
+                  Category: <span className="font-medium">{item.category.replace(/\b\w/g, char => char.toUpperCase())}</span>
+                </p>
+                <p className="text-xs text-gray-300">
+                  Series: <span className="font-medium">{item.series.replace(/\b\w/g, char => char.toUpperCase())}</span>
+                </p>
+                <p className="text-xs text-gray-300">
+                  Edition: <span className="italic">{item.edition.replace(/\b\w/g, char => char.toUpperCase())}</span>
+                </p>
+                <p className="text-xs text-gray-300">
+                  Material: <span className="italic">{item.material.replace(/\b\w/g, char => char.toUpperCase())}</span>
+                </p>
+                <p className="text-xs text-gray-300">
+                  Date: <span className="font-medium"> {item.dateAcquired
+                    ? new Date(item.dateAcquired).toLocaleDateString()
+                    : "Unknown"} </span>
+                </p>
 
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+              </div>
+            </div>
+          ))}
         </div>
+      )}
+      {showDetailsModal && selectedFigure && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-zinc-900 text-white rounded-xl p-6 w-[90%] max-w-4xl relative flex gap-6">
 
 
-    );
+            {/* Close Button */}
+            <button
+              className="absolute top-2 right-3 text-xl text-white hover:text-titlePurple"
+              onClick={() => setShowDetailsModal(false)}
+            >
+              ✖
+            </button>
+
+            {/* Image on Left */}
+
+            <div className="w-1/3 flex flex-col items-center">
+              <img
+                src={selectedFigure.imageUrl || "https://media.istockphoto.com/id/1409329028/vector/no-picture-available-placeholder-thumbnail-icon-illustration-design.jpg?s=612x612&w=0&k=20&c=_zOuJu755g2eEUioiOUdz_mHKJQJn-tDgIAhQzyeKUQ="}
+                alt={selectedFigure.name}
+                className="object-contain h-full max-h-[500px] w-full rounded"
+              />
+              <div
+                className={`mt-4 w-full text-center text-white text-sm font-semibold py-1 rounded ${selectedFigure.list === 'wishlist' ? 'bg-green-500' : 'bg-yellow-500'
+                  }`}
+              >
+                {selectedFigure.list
+                  ? selectedFigure.list.charAt(0).toUpperCase() + selectedFigure.list.slice(1)
+                  : 'Unknown'}
+              </div>
+            </div>
+
+
+
+            {/* Text on Right */}
+            <div className="w-2/3 flex flex-col justify-start space-y-2 overflow-y-auto max-h-[500px] pr-2">
+              <h2 className="text-3xl text-lightPurple font-bold mb-2">{selectedFigure.name.replace(/\b\w/g, char => char.toUpperCase())} #{selectedFigure.modelNumber}</h2>
+
+              <p><strong>Category:</strong> {selectedFigure.category.replace(/\b\w/g, char => char.toUpperCase())}</p>
+              <p><strong>Series:</strong> {selectedFigure.series.replace(/\b\w/g, char => char.toUpperCase())}</p>
+              <p><strong>Edition:</strong> {selectedFigure.edition.replace(/\b\w/g, char => char.toUpperCase())}</p>
+              {selectedFigure.edition === "retail-exclusive" && (
+                <p><strong>Exclusive Store:</strong> {selectedFigure.exclusiveStore.replace(/\b\w/g, char => char.toUpperCase())}</p>
+              )}
+              {selectedFigure.edition === "convention-exclusive" && (
+                <p><strong>Convention Store:</strong> {selectedFigure.convention.replace(/\b\w/g, char => char.toUpperCase())}</p>
+              )}
+              <p><strong>Material:</strong> {selectedFigure.material.replace(/\b\w/g, char => char.toUpperCase())}</p>
+              {selectedFigure.multiPack && (
+                <p><strong>Total Figures Included:</strong> {selectedFigure.numFigs || 1}</p>
+              )}
+              <p><strong>Bobble Head:</strong> {selectedFigure.bobbleHead ? "Yes" : "No"}</p>
+              <p><strong>Vaulted:</strong> {selectedFigure.vaulted ? "Yes" : "No"}</p>
+              <p><strong>Count Owned:</strong> {selectedFigure.count || 1}</p>
+              <p><strong>
+                Date:  </strong>{selectedFigure.dateAcquired
+                  ? new Date(selectedFigure.dateAcquired).toLocaleDateString()
+                  : "Unknown"}
+              </p>
+              <p><strong>Estimated Price:</strong> ${selectedFigure.estimatedPriceAtPurchase || "?"}</p>
+              <p><strong>Description</strong> {selectedFigure.description || 'None'}</p>
+            </div>
+
+
+          </div>
+        </div>
+      )}
+    </div>
+
+
+  );
 }
 
 /*<div class="w-full max-w-sm min-w-[200px]">
